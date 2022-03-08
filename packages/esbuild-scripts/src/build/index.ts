@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import * as esbuild from "esbuild";
 import isCi from "is-ci";
 import chalk from "chalk";
@@ -19,13 +20,29 @@ import { createIndex } from "../api";
 const plugins: esbuild.Plugin[] = [cssModulesPlugin, svgrPlugin()];
 
 void (async () => {
+
+  let config: {
+    loader: Record<string, string>;
+    env: Record<string, string>;
+    proxy: Record<string, ProxyOptions>;
+  } = {
+    loader: {},
+    env: {},
+    proxy: {}
+  };
+
   if (checkRequiredFiles([paths.appHtml, paths.appIndexJs])) {
     process.exit(1);
   }
 
+  const configPath = path.resolve(paths.appPath, 'esbuild.config.js');
+  try {
+    config = require(configPath);
+  } catch (error) {}
+
   logger.log("Creating an optimized production build...");
 
-  const env = getClientEnvironment(paths.publicUrlOrPath.slice(0, -1));
+  const env = getClientEnvironment(paths.publicUrlOrPath.slice(0, -1), config.env);
 
   await fs.emptyDir(paths.appBuild);
 
@@ -73,6 +90,7 @@ void (async () => {
 
         // enable JSX in js files
         ".js": "jsx",
+        ...config.loader
       },
       logLevel: "silent",
       target: "es2015",
