@@ -17,6 +17,7 @@ import globalsPolyfills from '@esbuild-plugins/node-globals-polyfill'
 import checkRequiredFiles from "../utils/check-required-files";
 import printHostingInstructions from "./print-hosting-instructions";
 import { createIndex } from "../api";
+import getConfigFromPath from "../config/file-config";
 
 const plugins: esbuild.Plugin[] = [cssModulesPlugin, svgrPlugin(), globalsPolyfills({
   buffer: true
@@ -24,22 +25,11 @@ const plugins: esbuild.Plugin[] = [cssModulesPlugin, svgrPlugin(), globalsPolyfi
 
 void (async () => {
 
-  let config: {
-    loader: Record<string, string>;
-    env: Record<string, string>;
-  } = {
-    loader: {},
-    env: {}
-  };
-
   if (checkRequiredFiles([paths.appHtml, paths.appIndexJs])) {
     process.exit(1);
   }
 
-  const configPath = path.resolve(paths.appPath, 'esbuild.config.js');
-  try {
-    config = require(configPath);
-  } catch (error) {}
+  const config = {...getConfigFromPath(paths.appPath)}
 
   logger.log("Creating an optimized production build...");
 

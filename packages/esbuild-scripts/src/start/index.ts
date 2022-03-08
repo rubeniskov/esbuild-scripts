@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import globalsPolyfills from '@esbuild-plugins/node-globals-polyfill'
-import { createProxyMiddleware, Options as ProxyOptions } from 'http-proxy-middleware'
+import { createProxyMiddleware } from 'http-proxy-middleware'
 import * as esbuild from "esbuild";
 import chalk from "chalk";
 import * as express from "express";
@@ -30,6 +30,7 @@ import * as logger from "../utils/logger";
 import prepareUrls, { InstructionURLS } from "../config/urls";
 import { createIndex } from "../api";
 import { formatError } from "../utils/format-error";
+import getConfigFromPath, { ConfigFile } from '../config/file-config';
 
 class DevServer {
   private express: express.Express;
@@ -42,11 +43,7 @@ class DevServer {
 
   private ws: ws.Instance;
 
-  private config: {
-    loader: Record<string, string>;
-    env: Record<string, string>;
-    proxy: Record<string, ProxyOptions>;
-  } = {
+  private config: ConfigFile = {
     loader: {},
     env: {},
     proxy: {}
@@ -55,10 +52,9 @@ class DevServer {
   constructor() {
     
     
-    const configPath = path.resolve(paths.appPath, 'esbuild.config.js');
-    try {
-      this.config = require(configPath);
-    } catch (error) {}
+    this.config = {
+      ...getConfigFromPath(paths.appPath)
+    };
 
     this.env = getClientEnvironment(paths.publicUrlOrPath.slice(0, -1), this.config.env);
     this.protocol = process.env.HTTPS === "true" ? "https" : "http";
@@ -72,7 +68,7 @@ class DevServer {
     this.express.use(express.static(paths.appPublic));
     
     // https://webpack.js.org/configuration/dev-server/#devserverproxy
-    Object.entries(this.config.proxy).forEach(([path, options]) => {
+    Object.entries(this.config.proxy ?? {}).forEach(([path, options]) => {
       this.express.use(path, createProxyMiddleware({
         ...options,
         logProvider: () => ({
