@@ -8,9 +8,6 @@
   "bin": {
     "react-scripts": "build/index.js"
   },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
-  },
   "files": [
     "build",
     "index.d.ts",
