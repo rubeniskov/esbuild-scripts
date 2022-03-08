@@ -202,7 +202,10 @@ class DevServer {
         target: "es2015",
         logLevel: "silent",
         color: !isCi,
-        define: this.env.stringified,
+        define: {
+          global: 'window',
+          ...this.env.stringified,
+        },
         watch: true,
         write: true,
         plugins: [

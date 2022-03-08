@@ -98,7 +98,10 @@ void (async () => {
       absWorkingDir: paths.appPath,
       format: "esm",
       color: !isCi,
-      define: getClientEnvironment(paths.publicUrlOrPath).stringified,
+      define: {
+        global: 'window',
+        ...getClientEnvironment(paths.publicUrlOrPath).stringified,
+      },
       metafile: true,
       tsconfig: paths.appTsConfig,
       minify: true,
