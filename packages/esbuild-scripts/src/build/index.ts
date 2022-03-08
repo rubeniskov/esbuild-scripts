@@ -13,11 +13,14 @@ import { formatError } from "../utils/format-error";
 
 import cssModulesPlugin from "../plugins/css-modules";
 import svgrPlugin from "../plugins/svgr";
+import globalsPolyfills from '@esbuild-plugins/node-globals-polyfill'
 import checkRequiredFiles from "../utils/check-required-files";
 import printHostingInstructions from "./print-hosting-instructions";
 import { createIndex } from "../api";
 
-const plugins: esbuild.Plugin[] = [cssModulesPlugin, svgrPlugin()];
+const plugins: esbuild.Plugin[] = [cssModulesPlugin, svgrPlugin(), globalsPolyfills({
+  buffer: true
+})];
 
 void (async () => {
 
