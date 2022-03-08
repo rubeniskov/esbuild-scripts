@@ -24,11 +24,9 @@ void (async () => {
   let config: {
     loader: Record<string, string>;
     env: Record<string, string>;
-    proxy: Record<string, ProxyOptions>;
   } = {
     loader: {},
-    env: {},
-    proxy: {}
+    env: {}
   };
 
   if (checkRequiredFiles([paths.appHtml, paths.appIndexJs])) {
