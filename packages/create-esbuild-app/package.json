@@ -2,6 +2,9 @@
   "name": "@lukesheard/create-esbuild-app",
   "version": "1.0.0",
   "description": "",
+  "engines": {
+    "node": ">=14.0.0"
+  },
   "bin": {
     "create-esbuild-app": "index.js"
   },

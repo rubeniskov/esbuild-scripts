@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import globalsPolyfills from '@esbuild-plugins/node-globals-polyfill'
+import { createProxyMiddleware, Options as ProxyOptions } from 'http-proxy-middleware'
 import * as esbuild from "esbuild";
 import chalk from "chalk";
 import * as express from "express";
@@ -21,7 +25,7 @@ import incrementalReporterPlugin from "../plugins/incremental-reporter";
 import websocketReloadPlugin from "../plugins/ws-reload";
 
 import choosePort from "../utils/choose-port";
-import openBrowser from "../utils/open-browser";
+import openBrowser from "react-dev-utils/openBrowser";
 import * as logger from "../utils/logger";
 import prepareUrls, { InstructionURLS } from "../config/urls";
 import { createIndex } from "../api";
@@ -38,10 +42,26 @@ class DevServer {
 
   private ws: ws.Instance;
 
-  constructor() {
-    this.env = getClientEnvironment(paths.publicUrlOrPath.slice(0, -1));
-    this.protocol = process.env.HTTPS === "true" ? "https" : "http";
+  private config: {
+    loader: Record<string, string>;
+    env: Record<string, string>;
+    proxy: Record<string, ProxyOptions>;
+  } = {
+    loader: {},
+    env: {},
+    proxy: {}
+  }
 
+  constructor() {
+    
+    
+    const configPath = path.resolve(paths.appPath, 'esbuild.config.js');
+    try {
+      this.config = require(configPath);
+    } catch (error) {}
+
+    this.env = getClientEnvironment(paths.publicUrlOrPath.slice(0, -1), this.config.env);
+    this.protocol = process.env.HTTPS === "true" ? "https" : "http";
     this.outdir = tmp.dirSync().name;
     this.express = express.default();
     this.ws = ws(this.express);
@@ -50,6 +70,26 @@ class DevServer {
     this.express.get("/", this.handleIndex);
     this.express.use(express.static(this.outdir));
     this.express.use(express.static(paths.appPublic));
+    
+    // https://webpack.js.org/configuration/dev-server/#devserverproxy
+    Object.entries(this.config.proxy).forEach(([path, options]) => {
+      this.express.use(path, createProxyMiddleware({
+        ...options,
+        logProvider: () => ({
+          log: logger.log,
+          debug: logger.log,
+          error: logger.error,
+          info: logger.log,
+          warn: logger.warn,
+        })
+      }));
+    });
+    // https://webpack.js.org/configuration/dev-server/#devserverhistoryapifallback
+    // By default return the index file to allow pushState https://developer.mozilla.org/es/docs/Web/API/History/pushState
+    const historyApiFallback = process.argv.includes('--pushState')
+    if (historyApiFallback) {
+      this.express.use(this.handleIndex);
+    }
 
     this.ws.app.ws("/_ws", (ws, req) => {
       logger.debug("Connected");
@@ -93,7 +133,7 @@ class DevServer {
   private port: () => Promise<number> = memoize(async () => {
     const port = await choosePort(
       this.host,
-      parseInt(process.env.PORT || "8000", 0)
+      parseInt(process.env.PORT || "3000", 0)
     );
     if (port) {
       return port;
@@ -119,7 +159,8 @@ class DevServer {
       try {
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         this.server = this.express.listen(port, this.host, async () => {
-          await openBrowser((await this.urls()).localUrlForBrowser);
+          const { localUrlForBrowser } = (await this.urls());
+          openBrowser(localUrlForBrowser);
           this.started = true;
           resolve(this);
         });
@@ -190,6 +231,9 @@ class DevServer {
       cssModulesPlugin,
       svgrPlugin(),
       incrementalReporterPlugin(),
+      globalsPolyfills({
+        buffer: true
+      })
     ];
     let resolveIntialBuild;
     if (watch) {
@@ -225,12 +269,16 @@ class DevServer {
 
         // enable JSX in js files
         ".js": "jsx",
+        ...this.config.loader
       },
       logLevel: "silent",
       absWorkingDir: paths.appPath,
       format: "esm",
       color: !isCi,
-      define: this.env.stringified,
+      define: {
+        global: 'window',
+        ...this.env.stringified,
+      },
       metafile: true,
       incremental: watch,
       // if we're not watching then we don't actually care about any output

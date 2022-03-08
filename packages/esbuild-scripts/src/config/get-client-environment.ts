@@ -8,14 +8,20 @@ export interface ClientEnvironment {
 }
 
 export default function getClientEnvironment(
-  publicUrl: string
+  publicUrl: string,
+  extra?: Record<string, string>,
 ): ClientEnvironment {
   const raw = Object.keys(process.env)
     .filter((key) => REACT_APP.test(key))
     .reduce<Record<string, string>>(
       (env, key) => {
-        env[key] = process.env[key] as string;
-        return env;
+        if (env[key] === undefined) {
+          return env;
+        }
+        return {
+          ...env,
+          [key]: process.env[key] as string
+        };
       },
       {
         // Useful for determining whether we’re running in production mode.
@@ -26,16 +32,17 @@ export default function getClientEnvironment(
         // This should only be used as an escape hatch. Normally you would put
         // images into the `src` and `import` them in code to get their paths.
         PUBLIC_URL: publicUrl,
+        ...extra
       }
     );
 
   // Stringify all values so we can feed into esbuild "define"
   // https://esbuild.github.io/api/#define
   const stringified = Object.entries(raw).reduce<Record<string, string>>(
-    (env, [key, value]) => {
-      env[`process.env.${key}`] = JSON.stringify(value);
-      return env;
-    },
+    (env, [key, value]) => ({
+      ...env,
+      [`process.env.${key}`]: JSON.stringify(value)
+    }),
     {}
   );
 

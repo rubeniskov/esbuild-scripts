@@ -1,11 +1,14 @@
-import ErrorOverlay from "react-error-overlay";
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import stripAnsi from "strip-ansi";
-
+const ErrorOverlay = require("react-error-overlay");
 const isFirstCompilation: Record<string, boolean> = {};
 let isBuilding = false;
 let hasCompileErrors = false;
 
-ErrorOverlay.setEditorHandler(function editorHandler(errorLocation) {
+ErrorOverlay.setEditorHandler(function editorHandler(errorLocation: { fileName: string | number | boolean; lineNumber: any; colNumber: any; }) {
   // Keep this sync with errorOverlayMiddleware.js
   void fetch(
     "/__open_editor" +
