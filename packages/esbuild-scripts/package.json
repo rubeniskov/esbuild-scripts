@@ -1,5 +1,5 @@
 {
-  "name": "@lukesheard/esbuild-scripts",
+  "name": "@rubeniskov/esbuild-scripts",
   "version": "4.0.1",
   "license": "MIT",
   "engines": {
@@ -7,6 +7,9 @@
   },
   "bin": {
     "react-scripts": "build/index.js"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   },
   "files": [
     "build",
@@ -16,7 +19,7 @@
   "repository": {
     "directory": "packages/esbuild-scripts",
     "type": "git",
-    "url": "git@github.com:LukeSheard/esbuild-scripts.git"
+    "url": "git@github.com:rubeniskov/esbuild-scripts.git"
   },
   "dependencies": {
     "@esbuild-plugins/node-globals-polyfill": "^0.1.1",

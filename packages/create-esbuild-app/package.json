@@ -1,5 +1,5 @@
 {
-  "name": "@lukesheard/create-esbuild-app",
+  "name": "@rubeniskov/create-esbuild-app",
   "version": "1.0.0",
   "description": "",
   "engines": {
@@ -8,6 +8,9 @@
   "bin": {
     "create-esbuild-app": "index.js"
   },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -15,7 +18,7 @@
   "repository": {
     "directory": "packages/create-esbuild-app",
     "type": "git",
-    "url": "git@github.com:LukeSheard/esbuild-scripts.git"
+    "url": "git@github.com:rubeniskov/esbuild-scripts.git"
   },
   "author": "",
   "license": "ISC",
