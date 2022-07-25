@@ -70,7 +70,7 @@ connection.onmessage = (m: MessageEvent) => {
   } else {
     isFirstCompilation[name] = false;
   }
-
+  
   if (name === "runtime") {
     if (!isFirstCompilation[name]) {
       window.location.reload();
@@ -81,10 +81,11 @@ connection.onmessage = (m: MessageEvent) => {
     if (isBuilding) {
       clearOutdatedErrors();
     } else {
-      const isSuccessful = false; // result && !result.errors.length && !result.warnings.length;
+      const isSuccessful = !isFirstCompilation[name] && result?.errors.length === 0 && result?.warnings.length === 0;
       if (isSuccessful) {
         hasCompileErrors = false;
         window.location.reload();
+        
       } else {
         hasCompileErrors = true;
         clearOutdatedErrors();
