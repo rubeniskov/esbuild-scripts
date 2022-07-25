@@ -90,7 +90,7 @@ void (async () => {
       color: !isCi,
       define: {
         global: 'window',
-        ...getClientEnvironment(paths.publicUrlOrPath).stringified,
+        ...env.stringified,
       },
       metafile: true,
       tsconfig: paths.appTsConfig,
